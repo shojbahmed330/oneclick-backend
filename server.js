@@ -44,8 +44,28 @@ app.post('/api/sandbox', async (req, res) => {
         await sandbox.files.write(params.path, params.content);
         result = { success: true };
         break;
+      case 'patch_file':
+        // Read existing file
+        const currentContent = await sandbox.files.read(params.path);
+        // Replace target content
+        if (!currentContent.includes(params.targetContent)) {
+          throw new Error("Target content not found in file");
+        }
+        const newContent = currentContent.replace(params.targetContent, params.replacementContent);
+        // Write back
+        await sandbox.files.write(params.path, newContent);
+        result = { success: true };
+        break;
       case 'list_files':
         result = await sandbox.files.list(params.dir || '/home/user');
+        break;
+      case 'create_directory':
+        await sandbox.files.makeDir(params.path);
+        result = { success: true };
+        break;
+      case 'delete_file':
+        await sandbox.files.remove(params.path);
+        result = { success: true };
         break;
       default:
         return res.status(400).json({ error: 'Unknown action' });
